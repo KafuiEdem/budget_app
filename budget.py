@@ -1,10 +1,11 @@
 class Category:
 
-    ledger =list()
+    
 
     #creating the constructor
     def __init__(self,item) -> None:
         self.item = item
+        self.ledger =list()
 
     #building the deposit method
     def deposit(self,amount,description=""):
@@ -14,30 +15,31 @@ class Category:
 
     #buidling the withdraw method
     def withdraw(self,amount,description=""):
-        withdraw_item = {"withdraw":{"amount":-amount,"description":description}}
         for item in self.ledger:
             for key,value in item.items():
                 if key == self.item:
                     for _,v in value[0].items():
-                        # if v["amount"] < amount:
                         if self.check_funds(amount) ==False:
                             pass
                         else:
+                            # withdraw_amount = v["amount"] + amount
+                            # print(withdraw_amount)
+                            withdraw_item = {"withdraw":{"amount":-amount,"description":description}}
+
                             value.append(withdraw_item)  
                            
 
     #building the get_balance method
     def get_balance(self):
-        for item in self.ledger:
-            for key,value in item.items():
-                if key == self.item:
-                    deposit_amount=value[0].get("deposit")["amount"]
-                    if len(value) >1:
-                        withdrawal_amoutnt = value[1].get("withdraw")["amount"]
-                        deposit_amount += withdrawal_amoutnt
-                    balance_amount = {"balance":{"amount":deposit_amount}}
-                    value.append(balance_amount)
-                    return balance_amount
+        deposit_amount = self.ledger[0][self.item][0].get("deposit")["amount"]
+        withdrawal_amount = 0
+        for entry in self.ledger[1:]:
+            for key, value in entry.items():
+                if "withdraw" in value:
+                    withdrawal_amount += value["withdraw"]["amount"]
+        balance_amount = deposit_amount + withdrawal_amount
+        return {"balance": {"amount": balance_amount}}
+
 
 
     #building the the transfer method
@@ -62,18 +64,36 @@ class Category:
            return False
        else:
            return True
+    #geting the output 
+    def __str__(self) -> str:
+        motd = f"{self.item:*^30}"
+        items =""
+        total = 0
 
-
+        for item in self.ledger:
+            for key,values in item.items():
+                for value in values:
+                    for description, amount in value.items():
+                        for k,v in amount.items():
+                            if "description" in k:
+                                items +=f"\n{v[:23]:23}{amount['amount']:>7}"
+                                total += amount["amount"]
+        result = motd + items + "\nTotal: " +str(total)
+        return result
+    
 
 def create_spend_chart(categories):
     pass
 
 if __name__== "__main__":
   
-    food = Category("Food")
-    food.deposit(1000, "initial deposit")
-    food.get_balance()
-
-    print(food.ledger)
+  food = Category("Food")
+  clothing = Category("Clothing")
+  food.deposit(1000, "initial deposit")
+  food.withdraw(10.15, "groceries")
+  food.withdraw(15.89, "restaurant and more food for dessert")
+  food.transfer(50, clothing)
+  print(food)
+#   print(food.get_balance())
     
 
